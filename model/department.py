@@ -1,10 +1,15 @@
 from uuid import uuid4
 from pydantic import BaseModel
 
-class Department(BaseModel):
-    id: int
+class DepartmentBase(BaseModel):
     name: str
     manager: str
     location: str
     number_of_employees: int
-    id_crud_verify: str = str(uuid4())
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+class Department(DepartmentBase):
+    id: int
+    id_crud_verify: str = uuid4().hex

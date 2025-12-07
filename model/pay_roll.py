@@ -4,11 +4,16 @@ from pydantic import BaseModel
 from typing import List
 
 
-class PayRoll(BaseModel):
-    id: int
+class PayRollBase(BaseModel):
     discounts: float
     net_salary: float
     gross_salary: float
     reference_month: date
     employees: List[int]
-    id_crud_verify: str = str(uuid4())
+
+class PayRollCreate(PayRollBase):
+    pass
+
+class PayRoll(PayRollBase):
+    id: int
+    id_crud_verify: str = uuid4().hex

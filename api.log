@@ -192,3 +192,16 @@
 2025-05-14 23:03:15,126 - INFO - Calculando o hash de folha de pagamentos
 2025-05-14 23:03:20,266 - INFO - Retornando quantidade de folha de pagamentos
 2025-05-14 23:03:33,131 - INFO - Folha de Pagamento com ID 1 atualizada com sucesso
+2025-12-07 15:23:55,056 - INFO - Departamento criado com sucesso
+2025-12-07 15:24:14,787 - INFO - Retornando departamento de ID: 0
+2025-12-07 15:25:08,450 - INFO - Departamento com ID 0 deletado com sucesso
+2025-12-07 15:25:35,774 - INFO - Departamento criado com sucesso
+2025-12-07 15:29:45,910 - INFO - Funcionário criado com sucesso
+2025-12-07 15:52:37,485 - INFO - Retornando departamento de ID: 0
+2025-12-07 15:53:07,130 - INFO - Departamento com ID 0 atualizado com sucesso
+2025-12-07 15:54:07,824 - INFO - Retornando todos os departamentos
+2025-12-07 15:54:56,670 - INFO - Departamento com ID 1 atualizado com sucesso
+2025-12-07 15:55:17,618 - INFO - Retornando departamento de ID: 1
+2025-12-07 15:56:05,477 - INFO - Departamento com ID 1 atualizado com sucesso
+2025-12-07 15:56:11,974 - INFO - Retornando departamento de ID: 1
+2025-12-07 15:56:37,405 - INFO - Departamento com ID 1 atualizado com sucesso

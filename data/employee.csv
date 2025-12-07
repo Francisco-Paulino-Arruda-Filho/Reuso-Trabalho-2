@@ -1,19 +1,2 @@
-id,id_department,name,cpf,position,admission_date
-1,1,Ana Paula,12345678900,Analista de RH,2022-03-15
-2,1,João Marcos,23456789011,Recrutador de devs,2023-05-22
-3,2,Clara Mendes,34567890122,Contadora,2021-01-10
-4,3,Lucas Rocha,45678901233,Desenvolvedor Backend,2020-06-12
-5,3,Beatriz Lopes,56789012344,DevOps,2022-11-07
-6,4,Ricardo Nogueira,67890123455,Designer,2021-09-01
-7,5,Vanessa Silva,78901234566,Executiva de Vendas,2023-02-18
-8,5,Fábio Costa,89012345677,Representante Comercial,2022-07-03
-9,6,Tatiana Amorim,90123456788,Advogada,2020-04-29
-10,3,Carlos Eduardo,01234567899,Desenvolvedor Frontend,2021-12-20
-11,2,Renato Borges,11223344556,Assistente Financeiro,2023-08-10
-12,4,Luciana Ferreira,22334455667,Diretora de Arte,2022-10-05
-13,6,Gabriel Martins,33445566778,Estagiário Jurídico,2024-01-15
-14,5,Camila Albuquerque,44556677889,Gerente de Contas,2021-03-29
-15,1,Pedro Henrique,55667788990,Analista de Benefícios,2023-12-01
-16,3,Juliana Castro,66778899001,Engenheira de Software,2022-06-18
-17,2,Thiago Ramos,77889900112,Auditor Fiscal,2020-10-30
-18,6,Marina Duarte,88990011223,Consultora Jurídica,2021-07-25
+id,id_department,name,cpf,position,admission_date,id_crud_verify
+0,0,string,string,string,2025-12-07,72822873-83a0-4b76-9baa-0beb7db1eb4b

@@ -3,11 +3,16 @@ from uuid import uuid4
 from pydantic import BaseModel
 
 
-class Employee(BaseModel):
-    id: int
+class EmployeeBase(BaseModel):
     id_department: int
     name: str
     cpf: str
     position: str
     admission_date: date
-    id_crud_verify: str = str(uuid4())
+
+class EmployeeCreate(EmployeeBase):
+    pass
+
+class Employee(EmployeeBase):
+    id: int
+    id_crud_verify: str = uuid4().hex
