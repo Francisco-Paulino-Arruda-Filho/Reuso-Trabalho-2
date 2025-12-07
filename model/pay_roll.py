@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List
 
 
-class PayRollBase(BaseModel):
+class PayRoll(BaseModel):
     id: int
     discounts: float
     net_salary: float
