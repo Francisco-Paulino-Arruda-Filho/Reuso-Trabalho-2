@@ -1,10 +1,10 @@
-from typing import Optional
 from pydantic import BaseModel
-
-from models.endereco import Ender
+from typing import Optional
+from .produto import Prod
+from .imposto import Imposto
 
 class Dest(BaseModel):
-    CNPJ: str
-    xNome: str
-    enderDest: Ender
-    IE: Optional[str] = None
+    nItem: str
+    prod: Prod
+    imposto: Imposto
+    infAdProd: Optional[str] = None
