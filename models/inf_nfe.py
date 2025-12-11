@@ -6,7 +6,7 @@ from .retirada import Retirada
 from .total import Total
 from .emitente import Emit
 from .destinatario import Dest
-from .destinatario import Det
+from .destinatario import Dest
 from .transporte import Transp
 from .inf_adic import InfAdic
 
@@ -18,7 +18,7 @@ class InfNFe(BaseModel):
     dest: Dest
     retirada: Optional[Retirada] = None
     entrega: Optional[Entrega] = None
-    det: List[Det]
+    det: List[Dest]
     total: Total
     transp: Transp
     infAdic: Optional[InfAdic] = None
