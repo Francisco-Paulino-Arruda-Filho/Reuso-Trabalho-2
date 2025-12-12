@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from models.reference import Reference
+
+from .reference import Reference
 
 class SignedInfo(BaseModel):
     CanonicalizationMethod: dict

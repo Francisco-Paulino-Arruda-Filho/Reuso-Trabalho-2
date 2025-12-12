@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from models.inf_nfe import InfNFe
+from .inf_nfe import InfNFe
 
 
 

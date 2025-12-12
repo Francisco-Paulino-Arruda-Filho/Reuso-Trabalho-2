@@ -1,8 +1,7 @@
-
 from pydantic import BaseModel
 
-from models.imposto import Imposto
-from models.produto import Prod
+from .imposto import Imposto
+from .produto import Prod
 
 class Det(BaseModel):
     nItem: int

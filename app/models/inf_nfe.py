@@ -2,14 +2,14 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from models.destinatario import Dest
-from models.emitente import Emit
-from models.entrega import Entrega
-from models.ide import Ide
-from models.inf_adic import InfAdic
-from models.retirada import Retirada
-from models.total import Total
-from models.transporte import Transp
+from .destinatario import Dest
+from .emitente import Emit
+from .entrega import Entrega
+from .ide import Ide
+from .inf_adic import InfAdic
+from .retirada import Retirada
+from .total import Total
+from .transporte import Transp
 from .det import Det 
 
 class InfNFe(BaseModel):

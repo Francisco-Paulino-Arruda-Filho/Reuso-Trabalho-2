@@ -1,7 +1,8 @@
 from typing import Optional
+
 from pydantic import BaseModel
 
-from models.endereco import Ender
+from .endereco import Ender
 
 class Emit(BaseModel):
     CNPJ: str
