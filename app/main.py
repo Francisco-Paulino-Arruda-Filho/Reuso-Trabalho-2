@@ -1,12 +1,13 @@
 from typing import Any, Dict
 from decimal import Decimal
-from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import JSONResponse
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-from models.nfe_payload import NFePayload
-from fastapi import FastAPI, Request
-from core.rate_limit import check_rate_limit
+
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
+
+from .models.nfe_payload import NFePayload
+from .core.rate_limit import check_rate_limit
 
 MOCK_JSON_PATH = "./nfes/nfe1.json"
 
