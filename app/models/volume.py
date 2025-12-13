@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from models.lacre import Lacre
+from .lacre import Lacre
 
 
 class Vol(BaseModel):

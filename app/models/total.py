@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from models.icms_tot import ICMSTot
+
+from .icms_tot import ICMSTot
 
 
 class Total(BaseModel):
