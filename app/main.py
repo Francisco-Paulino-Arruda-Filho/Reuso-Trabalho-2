@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from .models.nfe_payload import NFePayload
 from .core.rate_limit import check_rate_limit
 
-MOCK_JSON_PATH = "./nfes/nfe1.json"
+MOCK_JSON_PATH = "app/nfes/nfe1.json"
 
 with open(MOCK_JSON_PATH, "r", encoding="utf-8") as f:
     MOCK_JSON = f.read()
@@ -76,15 +76,10 @@ app = FastAPI(title="Mock NFe API - validate JSON and return XML")
 
 @app.middleware("http")
 async def rate_limiter(request: Request, call_next):
-    cnpj = request.headers.get("X-CNPJ")
+    rate_limit_response = await check_rate_limit(request)
 
-    if not cnpj:
-        return JSONResponse(
-            status_code=400,
-            content={"error": "X-CNPJ header obrigatório"}
-        )
-
-    await check_rate_limit(cnpj)
+    if (rate_limit_response):
+        return rate_limit_response
 
     return await call_next(request)
 
