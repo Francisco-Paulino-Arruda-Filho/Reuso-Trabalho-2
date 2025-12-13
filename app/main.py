@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from .models.nfe_payload import NFePayload
 from .core.rate_limit import check_rate_limit
+from .core.circuit_breaker import with_retry_and_circuit_breaker
 
 MOCK_JSON_PATH = "app/nfes/nfe1.json"
 
@@ -85,12 +86,14 @@ async def rate_limiter(request: Request, call_next):
 
 
 @app.get("/nfe/mock")
-def get_mock():
+@with_retry_and_circuit_breaker()
+async def get_mock():
     return MOCK_JSON
 
 
 @app.post("/nfe", response_class=Response)
-def post_nfe(payload: NFePayload):
+@with_retry_and_circuit_breaker(max_attempts=3, initial_delay=0.5)
+async def post_nfe(payload: NFePayload):
     try:
         payload_dict = payload.dict(by_alias=True, exclude_none=True)
     except Exception as e:
