@@ -1,0 +1,68 @@
+{
+  "natureza_operacao": "Venda de mercadoria",
+  "data_emissao": "2025-12-14",
+  "data_entrada_saida": "2025-12-14",
+  "tipo_documento": 1,
+  "finalidade_emissao": 1,
+
+  "cnpj_emitente": "11444777000161",
+  "cpf_emitente": null,
+
+  "nome_emitente": "Empresa Exemplo LTDA",
+  "nome_fantasia_emitente": "Empresa Exemplo",
+
+  "logradouro_emitente": "Rua das Flores",
+  "numero_emitente": 100,
+  "bairro_emitente": "Centro",
+  "municipio_emitente": "São Paulo",
+  "uf_emitente": "SP",
+  "cep_emitente": "01001000",
+  "inscricao_estadual_emitente": "123456789",
+
+  "nome_destinatario": "João da Silva",
+  "cpf_destinatario": "52998224725",
+  "cnpj_destinatario": null,
+  "inscricao_estadual_destinatario": null,
+  "telefone_destinatario": 11999999999,
+
+  "logradouro_destinatario": "Av. Paulista",
+  "numero_destinatario": 1000,
+  "bairro_destinatario": "Bela Vista",
+  "municipio_destinatario": "São Paulo",
+  "uf_destinatario": "SP",
+  "pais_destinatario": "Brasil",
+  "cep_destinatario": "01310200",
+
+  "valor_frete": 50.00,
+  "valor_seguro": 10.00,
+  "valor_produtos": 200.00,
+  "valor_total": 260.00,
+
+  "modalidade_frete": 0,
+
+  "items": [
+    {
+      "numero_item": 1,
+      "codigo_produto": 1234,
+      "descricao": "Produto Teste",
+      "cfop": 5102,
+
+      "unidade_comercial": "UN",
+      "quantidade_comercial": 2,
+      "valor_unitario_comercial": 100.00,
+
+      "valor_unitario_tributavel": 100.00,
+      "unidade_tributavel": "UN",
+      "quantidade_tributavel": 2,
+
+      "codigo_ncm": 12345678,
+      "valor_bruto": 200.00,
+
+      "icms_situacao_tributaria": 0,
+      "icms_origem": 0,
+
+      "pis_situacao_tributaria": "07",
+      "cofins_situacao_tributaria": "07"
+    }
+  ]
+}

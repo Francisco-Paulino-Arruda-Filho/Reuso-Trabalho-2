@@ -2,12 +2,8 @@ from app.models.nfe import NFe
 from math import isclose
 from app.utils.validar_cnpj import validar_cnpj
 from app.utils.validar_cpf import validar_cpf
-
-UFS_VALIDAS = {
-    "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA",
-    "MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN",
-    "RS","RO","RR","SC","SP","SE","TO"
-}
+from app.utils.validar_cep import validar_cep
+from app.utils.ufc_validas import UFS_VALIDAS
 
 
 def validar_nfe(nfe: NFe) -> None:
@@ -47,8 +43,8 @@ def validar_nfe(nfe: NFe) -> None:
     if nfe.uf_destinatario not in UFS_VALIDAS:
         erros.append("UF do destinatário inválida")
 
-    if len(str(nfe.cep_destinatario)) not in (8,):
-        erros.append("CEP do destinatário inválido")
+    if not validar_cep(nfe.cep_emitente):
+        erros.append("CEP do emitente inválido")
 
     if nfe.data_entrada_saida < nfe.data_emissao:
         erros.append("Data de entrada/saída não pode ser anterior à emissão")
