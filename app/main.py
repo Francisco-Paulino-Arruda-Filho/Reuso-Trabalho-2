@@ -1,10 +1,14 @@
 from typing import Any, Dict
 from decimal import Decimal
+import uuid
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
+import requests
+
+from app.infra.supabase_client import FOCUSNFE_BASE_URL, FOCUSNFE_TOKEN
 
 from .models.nfe_payload import NFePayload
 from .core.rate_limit import check_rate_limit
@@ -101,3 +105,42 @@ async def post_nfe(payload: NFePayload):
 
     xml_bytes = build_nfe_xml(payload_dict)
     return Response(content=xml_bytes, media_type="application/xml")
+
+@app.post("/nfe/emitir", response_class=JSONResponse)
+@with_retry_and_circuit_breaker(max_attempts=3, initial_delay=0.5)
+async def emitir_nfe_focus(payload: NFePayload):
+    try:
+        payload_dict = payload.dict(by_alias=True, exclude_none=True)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    referencia = str(uuid.uuid4())
+    url = f"{FOCUSNFE_BASE_URL}/v2/nfe?ref={referencia}"
+
+    try:
+        response = requests.post(
+            url=url,
+            json=payload_dict,
+            headers={"Content-Type": "application/json"},
+            auth=(FOCUSNFE_TOKEN, ""), 
+            timeout=30
+        )
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Erro de comunicação com FocusNFe: {str(e)}"
+        )
+
+    if response.status_code not in (200, 201):
+        raise HTTPException(
+            status_code=response.status_code,
+            detail={
+                "mensagem": "Erro ao emitir NF-e",
+                "resposta_focusnfe": response.text
+            }
+        )
+
+    return {
+        "referencia": referencia,
+        "resultado": response.json()
+    }
