@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Body, HTTPException, Response
 from app.models.nfe import NFe
 from app.utils.build_nfe_xml import build_nfe_xml
-
+from app.utils.validar_nfe import validar_nfe  
 
 app = FastAPI()
+
 
 @app.post(
     "/nfe/json-para-xml",
@@ -17,6 +18,8 @@ app = FastAPI()
 )
 async def json_para_xml(nfe: NFe = Body(...)):
     try:
+        validar_nfe(nfe)
+
         xml_str = build_nfe_xml(nfe)
 
         return Response(
