@@ -1,146 +1,37 @@
-from typing import Any, Dict
-from decimal import Decimal
-import uuid
-import xml.etree.ElementTree as ET
-from xml.dom import minidom
-
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse
-import requests
-
-from app.infra.supabase_client import FOCUSNFE_BASE_URL, FOCUSNFE_TOKEN
-
-from .models.nfe_payload import NFePayload
-from .core.rate_limit import check_rate_limit
-from .core.circuit_breaker import with_retry_and_circuit_breaker
-
-MOCK_JSON_PATH = "app/nfes/nfe1.json"
-
-with open(MOCK_JSON_PATH, "r", encoding="utf-8") as f:
-    MOCK_JSON = f.read()
-
-NS = "http://www.portalfiscal.inf.br/nfe"
-ET.register_namespace('', NS)
+from fastapi import FastAPI, Body, HTTPException, Response
+from app.models.nfe import NFe
+from app.utils.build_nfe_xml import build_nfe_xml
 
 
-def prettify(elem: ET.Element) -> bytes:
-    rough = ET.tostring(elem, encoding="utf-8")
-    reparsed = minidom.parseString(rough)
-    return reparsed.toprettyxml(encoding="utf-8", standalone="no")
+app = FastAPI()
 
-
-def dict_to_xml(parent: ET.Element, data: Any):
-    if data is None:
-        return
-    if isinstance(data, dict):
-        for key, val in data.items():
-            if val is None:
-                child = ET.SubElement(parent, key)
-                child.text = ""
-            elif isinstance(val, (dict)):
-                child = ET.SubElement(parent, key)
-                dict_to_xml(child, val)
-            elif isinstance(val, list):
-                for item in val:
-                    child = ET.SubElement(parent, key)
-                    dict_to_xml(child, item)
-            else:
-                child = ET.SubElement(parent, key)
-                if isinstance(val, Decimal):
-                    child.text = format(val, 'f')
-                else:
-                    child.text = str(val)
-    elif isinstance(data, list):
-        for item in data:
-            dict_to_xml(parent, item)
-    else:
-        parent.text = str(data)
-
-
-def build_nfe_xml(payload: Dict) -> bytes:
-    inf = payload["infNFe"]
-    root = ET.Element(f"{{{NS}}}NFe")
-    inf_elem = ET.SubElement(root, "infNFe")
-    if "Id" in inf:
-        inf_elem.set("Id", inf["Id"])
-    if "versao" in inf:
-        inf_elem.set("versao", str(inf["versao"]))
-
-    for key in inf:
-        if key in ("Id", "versao"):
-            continue
-        value = inf[key]
-        child = ET.SubElement(inf_elem, key)
-        dict_to_xml(child, value)
-
-    return prettify(root)
-
-
-app = FastAPI(title="Mock NFe API - validate JSON and return XML")
-
-
-@app.middleware("http")
-async def rate_limiter(request: Request, call_next):
-    rate_limit_response = await check_rate_limit(request)
-
-    if (rate_limit_response):
-        return rate_limit_response
-
-    return await call_next(request)
-
-
-@app.get("/nfe/mock")
-@with_retry_and_circuit_breaker()
-async def get_mock():
-    return MOCK_JSON
-
-
-@app.post("/nfe", response_class=Response)
-@with_retry_and_circuit_breaker(max_attempts=3, initial_delay=0.5)
-async def post_nfe(payload: NFePayload):
+@app.post(
+    "/nfe/json-para-xml",
+    response_class=Response,
+    responses={
+        200: {
+            "content": {"application/xml": {}},
+            "description": "XML da NF-e gerado com sucesso"
+        }
+    },
+)
+async def json_para_xml(nfe: NFe = Body(...)):
     try:
-        payload_dict = payload.dict(by_alias=True, exclude_none=True)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        xml_str = build_nfe_xml(nfe)
 
-    xml_bytes = build_nfe_xml(payload_dict)
-    return Response(content=xml_bytes, media_type="application/xml")
-
-@app.post("/nfe/emitir", response_class=JSONResponse)
-@with_retry_and_circuit_breaker(max_attempts=3, initial_delay=0.5)
-async def emitir_nfe_focus(payload: NFePayload):
-    try:
-        payload_dict = payload.dict(by_alias=True, exclude_none=True)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    referencia = str(uuid.uuid4())
-    url = f"{FOCUSNFE_BASE_URL}/v2/nfe?ref={referencia}"
-
-    try:
-        response = requests.post(
-            url=url,
-            json=payload_dict,
-            headers={"Content-Type": "application/json"},
-            auth=(FOCUSNFE_TOKEN, ""), 
-            timeout=30
+        return Response(
+            content=xml_str,
+            media_type="application/xml"
         )
-    except requests.RequestException as e:
+
+    except ValueError as e:
         raise HTTPException(
-            status_code=502,
-            detail=f"Erro de comunicação com FocusNFe: {str(e)}"
+            status_code=400,
+            detail=str(e)
         )
 
-    if response.status_code not in (200, 201):
+    except Exception as e:
         raise HTTPException(
-            status_code=response.status_code,
-            detail={
-                "mensagem": "Erro ao emitir NF-e",
-                "resposta_focusnfe": response.text
-            }
+            status_code=500,
+            detail=f"Erro ao gerar XML da NF-e: {str(e)}"
         )
-
-    return {
-        "referencia": referencia,
-        "resultado": response.json()
-    }
