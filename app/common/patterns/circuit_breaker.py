@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
 from typing import Callable, Optional
-from app.core.retry import ExponentialBackoff
+from app.common.patterns.retry import ExponentialBackoff
 import asyncio
 import inspect
 
