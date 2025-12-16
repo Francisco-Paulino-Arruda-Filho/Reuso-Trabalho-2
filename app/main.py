@@ -1,14 +1,16 @@
-from fastapi import FastAPI, Body, HTTPException, Response, Request
+from fastapi import FastAPI, Body, HTTPException, Response, Request, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from app.enums.nfe_status import StatusNFe
 from app.models.nfe import NFe
 from app.utils.validar_nfe import validar_nfe
 from app.utils.build_nfe_xml import build_nfe_xml
 from app.infra.supabase_client import supabase
-from app.core.rate_limit import check_rate_limit
-from app.core.circuit_breaker import with_retry_and_circuit_breaker
+from app.common.patterns.rate_limit import check_rate_limit
+from app.common.patterns.circuit_breaker import with_retry_and_circuit_breaker
+from app.workers.processar_nfe_worker import processar_nfe_worker
 
 app = FastAPI()
 
@@ -98,3 +100,64 @@ async def json_para_xml(
             status_code=500,
             detail=f"Erro ao gerar ou salvar NF-e: {str(e)}"
         )
+
+
+@app.post("/emitir-nfe", status_code=202)
+async def emitir_nfe(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    nfe: NFe = Body(...)
+):
+    try:
+        # payload = await request.json()
+        # nfe = NFe(**payload)
+        validar_nfe(nfe)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Erro na validação: {str(e)}")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"Erro ao processar payload: {str(e)}")
+
+    agora = datetime.now(timezone.utc)
+    nfe_id = str(uuid4())
+    record = {
+        "id": nfe_id,
+        "ref": agora.strftime("%y%m%d%H%M"),
+        "status": "CRIADA",
+        "chave_nfe": None,
+        "numero": None,
+        "serie": None,
+        "xml_url": None,
+        "danfe_url": None,
+        "payload_envio": jsonable_encoder(nfe),
+        "payload_retorno": None,
+        "ambiente": "producao",
+        "data_emissao": (
+            nfe.data_emissao.isoformat()
+            if getattr(nfe, "data_emissao", None)
+            else None
+        ),
+        "autorizado_em": None,
+        "criado_em": agora.isoformat(),
+        "atualizado_em": agora.isoformat(),
+    }
+
+    try:
+        supabase.table("nfe").insert(record).execute()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao salvar NF-e: {str(e)}")
+
+    background_tasks.add_task(processar_nfe_worker, record["id"])
+
+    return {
+        "success": True,
+        "message": "NF-e recebida e em processamento",
+        "data": {
+            "id": nfe_id,
+            "ref": record["ref"],
+            "status": StatusNFe.CRIADA,
+            "criado_em": agora.isoformat()
+        }
+    }
