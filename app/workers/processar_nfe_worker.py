@@ -7,12 +7,12 @@ import httpx
 from app.common.patterns.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, retry_with_circuit_breaker
 from app.common.patterns.retry import ExponentialBackoff
 from app.core.sefaz import SefazAPI
-from app.core.wsdl_urls import WSDLProvider
-from app.core.xml_signer_mock import XMLSignerMock
+from app.services.wsdl_urls.wsdl_urls import WSDLProvider
 from app.enums.nfe_status import StatusNFe
 from app.enums.nfe_status import StatusNFe
 from app.infra.supabase_client import supabase
 from app.models.nfe import NFe
+from app.services.xml_signer.xml_signer_mock import XMLSignerMock
 from app.utils.build_nfe_xml import build_nfe_xml
 
 logger = logging.getLogger(__name__)
