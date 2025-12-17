@@ -2,7 +2,7 @@ import logging
 from lxml import etree
 from lxml import etree
 
-from app.core.sefaz_soap_client import SEFAZSoapClient
+from app.services.sefaz.sefaz_soap_client import SEFAZSoapClient
 
 logger = logging.getLogger(__name__)
 

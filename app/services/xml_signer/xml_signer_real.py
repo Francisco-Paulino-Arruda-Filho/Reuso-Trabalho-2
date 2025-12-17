@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from cryptography.hazmat.primitives.serialization import pkcs12
 from signxml import XMLSigner as Signer
-from app.core.xml_signer import XMLSigner
+from app.services.xml_signer.xml_signer import XMLSigner
 
 class XMLSignerReal(XMLSigner):
     def __init__(self, pfx_path: str, password: str):

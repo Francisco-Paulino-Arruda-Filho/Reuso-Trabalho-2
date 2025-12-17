@@ -1,4 +1,4 @@
-from app.core.xml_signer import XMLSigner
+from app.services.xml_signer.xml_signer import XMLSigner
 
 
 class XMLSignerMock(XMLSigner):
