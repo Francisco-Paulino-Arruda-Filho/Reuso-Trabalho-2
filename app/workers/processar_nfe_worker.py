@@ -12,18 +12,10 @@ from app.enums.nfe_status import StatusNFe
 from app.models.nfe import NFe
 from app.services.xml_signer.xml_signer_mock import XMLSignerMock
 from app.utils.build_nfe_xml import build_nfe_xml
-import json
-import hmac
-import hashlib
+from app.services.webhook_notifier.webhook_notifier import WebhookNotifier
 from app.services.nfe.nfe import NFeServiceProtocol
 
 logger = logging.getLogger(__name__)
-
-# Circuit breaker / backoff config for external calls (SEFAZ / client webhook)
-_sefaz_cb = CircuitBreaker(CircuitBreakerConfig(failure_threshold=5))
-_default_backoff = ExponentialBackoff(
-    initial_delay=1.0, max_delay=10.0, max_attemps=4, jitter=True)
-
 
 async def _send_to_sefaz(xml_str: str, uf: str) -> dict:
     """Enviar XML para a API SOAP da SEFAZ."""
@@ -35,49 +27,10 @@ async def _send_to_sefaz(xml_str: str, uf: str) -> dict:
         return await result
     return result
 
-
-async def _notify_client_webhook(record: dict, status: str) -> None:
-    payload_envio = record.get("payload_envio") or {}
-    url = None
-
-    client_info = payload_envio.get("client") if isinstance(
-        payload_envio, dict) else None
-    if client_info and isinstance(client_info, dict):
-        url = client_info.get("webhook_url")
-
-    if not url:
-        url = os.getenv("CLIENT_WEBHOOK_URL")
-
-    if not url:
-        logger.debug(
-            "Nenhuma URL de webhook do cliente configurada; skip notifying")
-        return
-
-    body = {
-        "id": record.get("id"),
-        "ref": record.get("ref"),
-        "status": status,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
-
-    async def operation():
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            SECRET = os.getenv("CLIENT_WEBHOOK_SECRET", "default-secret")
-            payload_bytes = json.dumps(body, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-            signature = hmac.new(SECRET.encode(), payload_bytes, hashlib.sha256).hexdigest()
-            resp = await client.post(url, json=body, headers={"Content-Type": "application/json", "x-webhook-signature": signature})
-            resp.raise_for_status()
-            return resp
-
-    try:
-        await retry_with_circuit_breaker(operation, _sefaz_cb, _default_backoff)
-    except Exception as e:
-        logger.exception("Falha ao notificar webhook do cliente: %s", e)
-
-
 async def processar_nfe_worker(record_id: str, nfe_service: NFeServiceProtocol) -> None:
     try:
         record = nfe_service.get_by_id(record_id)
+        webhook_notifier = WebhookNotifier()
 
         if not record:
             logger.warning("Registro NF-e não encontrado: %s", record_id)
@@ -100,7 +53,7 @@ async def processar_nfe_worker(record_id: str, nfe_service: NFeServiceProtocol) 
             logger.info("Registro %s já está sendo processado por outro worker; skipping", record_id)
             return
 
-        await _notify_client_webhook(record, StatusNFe.PROCESSANDO.value)
+        await webhook_notifier.notificar(record, StatusNFe.PROCESSANDO.value)
 
         # 3) Construir o objeto NFe e gerar XML (se necessário)
         payload_envio = record.get("payload_envio") or {}
@@ -114,7 +67,7 @@ async def processar_nfe_worker(record_id: str, nfe_service: NFeServiceProtocol) 
             logger.exception("Erro ao enviar para SEFAZ: %s", e)
             nfe_service.mark_error(record_id, e)
 
-            await _notify_client_webhook(record, StatusNFe.ERRO.value)
+            await webhook_notifier.notificar(record, StatusNFe.ERRO.value)
             return
         
         # 5) Atualizar o registro no Supabase com o resultado da SEFAZ
@@ -140,7 +93,7 @@ async def processar_nfe_worker(record_id: str, nfe_service: NFeServiceProtocol) 
         # 6) Notificar cliente do novo status
         record.update(update_payload)
         
-        await _notify_client_webhook(record, new_status)
+        await webhook_notifier.notificar(record, new_status)
 
     except Exception as e:
         logger.exception(
