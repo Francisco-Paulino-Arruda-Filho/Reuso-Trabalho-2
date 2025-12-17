@@ -8,7 +8,6 @@ from app.models.nfe import NFe
 from app.services.nfe.nfe import NFeService, NFeServiceProtocol
 from app.utils.validar_nfe import validar_nfe
 from app.utils.build_nfe_xml import build_nfe_xml
-from app.infra.supabase_client import supabase
 from app.common.patterns.rate_limit import check_rate_limit
 from app.common.patterns.circuit_breaker import with_retry_and_circuit_breaker
 from app.workers.processar_nfe_worker import processar_nfe_worker
@@ -34,7 +33,8 @@ app = FastAPI()
 )
 async def json_para_xml(
     request: Request,
-    nfe: NFe = Body(...)
+    nfe: NFe = Body(...),
+    nfe_service: NFeServiceProtocol = Depends(NFeService)
 ):
     # ==========================
     # RATE LIMIT
@@ -53,7 +53,8 @@ async def json_para_xml(
         payload = {
             "id": str(uuid4()),
 
-            "ref": agora.strftime("%y%m%d%H%M"),
+            # Add seconds + short uuid suffix to reduce collisions
+            "ref": f"{agora.strftime('%y%m%d%H%M%S')}{uuid4().hex[:6]}",
 
             "status": "CRIADA",
 
@@ -83,9 +84,9 @@ async def json_para_xml(
             "atualizado_em": agora.isoformat(),
         }
 
-        response = supabase.table("nfe").insert(payload).execute()
+        inserted = nfe_service.insert(payload)
 
-        if not response.data:
+        if not inserted:
             raise Exception("Falha ao persistir NF-e no Supabase")
 
         return Response(
@@ -123,7 +124,7 @@ async def emitir_nfe(
     nfe_id = str(uuid4())
     record = {
         "id": nfe_id,
-        "ref": agora.strftime("%y%m%d%H%M"),
+        "ref": f"{agora.strftime('%y%m%d%H%M%S')}{uuid4().hex[:6]}",
         "status": "CRIADA",
         "chave_nfe": None,
         "numero": None,

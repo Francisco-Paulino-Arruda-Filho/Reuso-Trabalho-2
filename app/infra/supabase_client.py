@@ -14,4 +14,6 @@ options = ClientOptions(
     function_client_timeout=30.0,
 )
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY, options=options)
+
+def get_supabase_client() -> create_client:
+    return create_client(SUPABASE_URL, SUPABASE_KEY, options=options)
