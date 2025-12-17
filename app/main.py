@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Body, HTTPException, Response, Request, BackgroundTasks
+from fastapi import Depends, FastAPI, Body, HTTPException, Response, Request, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from datetime import datetime, timezone
 from uuid import uuid4
 
 from app.enums.nfe_status import StatusNFe
 from app.models.nfe import NFe
+from app.services.nfe.nfe import NFeService, NFeServiceProtocol
 from app.utils.validar_nfe import validar_nfe
 from app.utils.build_nfe_xml import build_nfe_xml
 from app.infra.supabase_client import supabase
@@ -82,9 +83,10 @@ async def json_para_xml(
             "atualizado_em": agora.isoformat(),
         }
 
-        from app.services.nfe.nfe import NFeService
-        svc = NFeService()
-        svc.insert(payload)
+        response = supabase.table("nfe").insert(payload).execute()
+
+        if not response.data:
+            raise Exception("Falha ao persistir NF-e no Supabase")
 
         return Response(
             content=xml_str,
@@ -105,11 +107,10 @@ async def json_para_xml(
 async def emitir_nfe(
     request: Request,
     background_tasks: BackgroundTasks,
+    nfe_service: NFeServiceProtocol = Depends(NFeService),
     nfe: NFe = Body(...)
 ):
     try:
-        # payload = await request.json()
-        # nfe = NFe(**payload)
         validar_nfe(nfe)
     except ValueError as e:
         raise HTTPException(
@@ -143,14 +144,12 @@ async def emitir_nfe(
     }
 
     try:
-        from app.services.nfe.nfe import NFeService
-        svc = NFeService()
-        svc.insert(record)
+        nfe_service.insert(record)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao salvar NF-e: {str(e)}")
 
-    background_tasks.add_task(processar_nfe_worker, record["id"])
+    background_tasks.add_task(processar_nfe_worker, record["id"], nfe_service)
 
     return {
         "success": True,
