@@ -16,7 +16,7 @@ class NFeStateManager:
     
     async def preparar_processamento(self, record_id: str) -> Optional[dict]:
         """Valida e prepara o registro para processamento"""
-        record = self.nfe_service.get_by_id(record_id)
+        record = await self.nfe_service.get_by_id(record_id)
         
         if not record:
             logger.warning("Registro NF-e não encontrado: %s", record_id)
@@ -31,7 +31,7 @@ class NFeStateManager:
             return None
         
         # Tentar adquirir lock
-        updated = self.nfe_service.update_status(
+        updated = await self.nfe_service.update_status(
             record_id,
             StatusNFe.PROCESSANDO.value,
             expected_current_status=StatusNFe.CRIADA.value,
@@ -49,8 +49,8 @@ class NFeStateManager:
     async def marcar_erro(self, record_id: str, erro: Exception) -> None:
         """Marca o registro como erro"""
         try:
-            self.nfe_service.mark_error(record_id, erro)
-            record = self.nfe_service.get_by_id(record_id)
+            await self.nfe_service.mark_error(record_id, erro)
+            record = await self.nfe_service.get_by_id(record_id)
             if record:
                 await self.webhook_notifier.notificar(record, StatusNFe.ERRO.value)
         except Exception:
