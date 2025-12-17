@@ -4,6 +4,7 @@ from app.utils.validar_cnpj import validar_cnpj
 from app.utils.validar_cpf import validar_cpf
 from app.utils.validar_cep import validar_cep
 from app.utils.ufc_validas import UFS_VALIDAS
+from app.utils.validar_datas import validar_datas
 
 
 def validar_nfe(nfe: NFe) -> None:
@@ -46,7 +47,7 @@ def validar_nfe(nfe: NFe) -> None:
     if not validar_cep(nfe.cep_emitente):
         erros.append("CEP do emitente inválido")
 
-    if nfe.data_entrada_saida < nfe.data_emissao:
+    if not validar_datas(nfe.data_emissao, nfe.data_entrada_saida):
         erros.append("Data de entrada/saída não pode ser anterior à emissão")
 
     if not nfe.items or len(nfe.items) == 0:
