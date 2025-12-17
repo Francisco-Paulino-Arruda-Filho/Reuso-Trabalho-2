@@ -84,7 +84,7 @@ async def json_para_xml(
             "atualizado_em": agora.isoformat(),
         }
 
-        inserted = nfe_service.insert(payload)
+        inserted = await nfe_service.insert(payload)
 
         if not inserted:
             raise Exception("Falha ao persistir NF-e no Supabase")
@@ -145,7 +145,7 @@ async def emitir_nfe(
     }
 
     try:
-        nfe_service.insert(record)
+        await nfe_service.insert(record)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao salvar NF-e: {str(e)}")

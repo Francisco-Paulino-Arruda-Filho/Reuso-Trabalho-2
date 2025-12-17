@@ -17,7 +17,7 @@ class ResultProcessor:
         update_payload = self._construir_update_payload(sefaz_result, novo_status)
         
         # Atualizar registro
-        self.nfe_service.update(record_id, update_payload)
+        await self.nfe_service.update(record_id, update_payload)
         
         # Atualizar record local para notificação
         record.update(update_payload)

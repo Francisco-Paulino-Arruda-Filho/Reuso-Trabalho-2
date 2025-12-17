@@ -6,7 +6,7 @@ from app.models.nfe import NFe
 from app.services.nfe.nfe import NFeService
 
 
-def salvar_nfe_supabase(nfe: NFe, xml_str: str):
+async def salvar_nfe_supabase(nfe: NFe, xml_str: str):
     """Wrapper that uses NFeService to create the record in Supabase."""
     svc = NFeService()
-    return svc.create_from_model(nfe, xml_str)
+    return await svc.create_from_model(nfe, xml_str)
