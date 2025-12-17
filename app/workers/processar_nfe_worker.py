@@ -1,11 +1,6 @@
-import os
 import logging
 from datetime import datetime, timezone
 
-import httpx
-
-from app.common.patterns.circuit_breaker import CircuitBreaker, CircuitBreakerConfig, retry_with_circuit_breaker
-from app.common.patterns.retry import ExponentialBackoff
 from app.core.sefaz import SefazAPI
 from app.services.wsdl_urls.wsdl_urls import WSDLProvider
 from app.enums.nfe_status import StatusNFe
