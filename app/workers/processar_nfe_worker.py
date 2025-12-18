@@ -28,5 +28,10 @@ async def processar_nfe_worker(record_id: str, nfe_service) -> None:
         result_processor=result_processor
     )
 
-    # Executar workflow
-    await orchestrator.processar(record_id)
+    try:
+        # Executar workflow
+        await orchestrator.processar(record_id)
+    except Exception as e:
+        logger.exception(f"Erro no processamento da NFe {record_id}: {e}")
+        await state_manager.update_nfe_status(record_id, 'ERRO')
+        raise

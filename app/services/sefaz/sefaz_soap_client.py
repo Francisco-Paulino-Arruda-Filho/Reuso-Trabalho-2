@@ -18,7 +18,7 @@ class SEFAZSoapClient:
         # Configurar session HTTP
         session = Session()
         session.verify = verify_ssl
-        transport = Transport(session=session)
+        transport = Transport(session=session, operation_timeout=30) # Timeout de 30 segundos
 
         # Criar client zeep com configurações robustas
         settings = Settings(
@@ -50,14 +50,9 @@ class SEFAZSoapClient:
                 result = self.client.service.nfeAutorizacaoLote(xml)
                 logger.debug(
                     f"Resultado zeep (type={type(result)}): {str(result)[:200]}")
-            except TypeError as e:
-                logger.warning(
-                    f"Chamada direta falhou: {e}, tentando com dict...")
-                result = self.client.service.nfeAutorizacaoLote(
-                    {'nfeDadosMsg': xml})
-
-            # CRÍTICO: Em vez de usar o resultado deserializado do zeep,
-            # pegamos a resposta HTTP raw do histórico
+            except TypeError as e: 
+                logger.warning(f"Chamada direta falhou: {e}")
+                
             if self.history.last_received:
                 response_content = self.history.last_received['envelope']
                 logger.debug(
