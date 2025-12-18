@@ -35,6 +35,8 @@ class NFeServiceProtocol(Protocol):
 
     async def mark_error(self, record_id: str, error: Any) -> Dict[str, Any]: ...
 
+    async def get_all(self) -> Any: ...
+
 class NFeService:
     """Service encapsulating common operations on the `nfe` Supabase table.
     """
@@ -64,6 +66,9 @@ class NFeService:
 
     def _generate_ref(self, agora: datetime) -> str:
         return f"{agora.strftime('%y%m%d%H%M%S')}{uuid4().hex[:6]}"
+    
+    def get_all(self) -> Any:
+        return self.client.table("nfe").select("*").execute()
 
     async def create_from_model(self, nfe: NFe, xml_str: Optional[str] = None) -> Dict[str, Any]:
         agora = datetime.now(timezone.utc)

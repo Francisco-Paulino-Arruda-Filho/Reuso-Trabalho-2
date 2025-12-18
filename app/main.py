@@ -163,6 +163,21 @@ async def emitir_nfe(
         }
     }
 
+@app.get("/get_all_nfes")
+async def get_all_nfes(
+    nfe_service: NFeServiceProtocol = Depends(NFeService)
+):
+    try:
+        nfe_records = nfe_service.get_all()
+        return {
+            "success": True,
+            "data": nfe_records
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar NF-es: {str(e)}")
+
 @app.get("/get_nfe/{nfe_id}")
 async def get_nfe(
     nfe_id: str,
