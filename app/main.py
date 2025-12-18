@@ -169,7 +169,7 @@ async def get_nfe(
     nfe_service: NFeServiceProtocol = Depends(NFeService)
 ):
     try:
-        nfe_record = nfe_service.get_by_id(nfe_id)
+        nfe_record = await nfe_service.get_by_id(nfe_id)
         if not nfe_record:
             raise HTTPException(status_code=404, detail="NF-e não encontrada")
 
